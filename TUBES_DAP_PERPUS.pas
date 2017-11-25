@@ -72,17 +72,70 @@ end;
 {procedureBooks}
 procedure tambahBuku;
 begin
-	
+	write('Kode Buku: '); readln(kodeBuku);
+	write('Judul Buku: '); readln(judulBuku);
+	write('Jenis Buku: '); readln(jenisBuku);
+	write('Jumlah Buku: '); readln(jumlahBuku);
+
+	write('Apakah anda yakin akan menambahkan buku dengan kode: ', kodeBuku, ' ? [y/t]'); readln(ans);
+	if (ans = 'Y') or (ans = 'y') then
+		// addto files books.dat
+	else menu; 
 end;
 
 procedure lihatBuku;
+var
+	i, j : integer;
+	temp : schemaBooks;
+
 begin
-	
+	{sorting_selection}
+	for i := 2 to length(arrBooks)-1 do
+	begin
+		j := i;
+		while (j > 0) and (arrBooks[j] < arrBooks[j-1]) do
+		begin
+			temp := arrBooks[j];
+			arrBooks[j] := arrBooks[j-1];
+			arrBooks[j-1] := temp;
+			j := j -1;
+		end;
+	end;
+	{/sorting_selection}
+
+	{show_datas}
+	for i := 1 to length(arrBooks) do
+	begin
+		printf('%s. %s | %s | %s | %s | %s | %s', i, arrBooks[j].kodeBuku, arrBooks[j].judulBuku, arrBooks[j].jenisBuku, arrBooks[j].jumlahBuku, arrBooks[j].jumlahDipinjam);
+	end;
+	{/show_datas}
 end;
 
 procedure editBuku;
+var ans : string;
+
 begin
-	
+	write('Masukkan kode buku: '); readln(kodeBuku);
+	idx := searchBooks(kodeBuku);
+
+	if idx <> -1 then begin
+		write('Kode Buku: '); readln(kodeBuku);
+		write('Judul Buku: '); readln(judulBuku);
+		write('Jenis Buku: '); readln(jenisBuku);
+		write('Jumlah Buku: '); readln(jumlahBuku);
+
+		write('Apakah anda yakin akan menambahkan buku dengan kode: ', kodeBuku, ' ? [y/t]'); readln(ans);
+		if (ans = 'Y') or (ans = 'y') then
+			// addto files books.dat
+		else menu; 
+	end
+	else writeln('Kode Buku Tidak Ditemukan !!');
+
+	write('Apakah anda masih ingin mencari buku? [y/t]'); readln(ans);
+
+	if (ans = 'Y') and (ans = 'y') then 
+		goto start
+	else menu;
 end;
 {/procedureBooks}
 
