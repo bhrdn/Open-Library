@@ -77,6 +77,13 @@ begin
 end;
 {/functionBooks}
 
+{procedureUsers}
+procedure tambahUsers;
+begin
+	
+end;
+{/procedureUsers}
+
 {procedureBooks}
 procedure tambahBuku;
 var ans : string;
@@ -169,6 +176,8 @@ begin
 	writeln('3. Edit Data Buku');
 	writeln('4. Logout');
 	writeln;
+	writeln('99. Create users (for administrator)');
+	writeln;
 	write('Pilih menu: '); readln(menu);
 
 	case menu of
@@ -186,7 +195,13 @@ begin
 
 		4: begin
 			isLogout := true;
-		end
+		end;
+
+		5: begin
+			if not isAdmin then 
+				isHome := true
+			else tambahUsers;
+		end;
 	end;
 
 end;
