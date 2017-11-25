@@ -21,6 +21,8 @@ type
 var
 	users : file of schemaUsers;
 	books : file of schemaBooks;
+	arrUsers : array of schemaUsers;
+	arrBooks : array of schemaBooks;
 	isLogin, isLogout, isAdmin: boolean;
 
 
@@ -34,33 +36,55 @@ begin
 	
 end;
 
-function editUsers(id, passwd): boolean;
+function editUsers(id, passwd : string): boolean;
 begin
 	
 end;
 
-function deleteUsers(id): boolean;
+function deleteUsers(id : string): boolean;
 begin
 	
 end;
 {/users}
 
 {books}
-function addBooks(kodeBuku, judulBuku, jenisBuku, jumlahBuku, jumlahDipinjam): boolean;
+function addBooks(kodeBuku, judulBuku, jenisBuku, jumlahBuku, jumlahDipinjam : string): boolean;
 begin
 	
 end;
 
-function editBooks(kodeBuku, jumlahBuku, jumlahDipinjam): boolean;
+function editBooks(kodeBuku, jumlahBuku, jumlahDipinjam : string): boolean;
 begin
 	
 end;
 
-function deleteBooks(kodeBuku): boolean;
+function deleteBooks(kodeBuku : string): boolean;
+begin
+	
+end;
+
+function sortBooks(books : schemaBooks): boolean;
 begin
 	
 end;
 {/books}
+
+{procedureBooks}
+procedure tambahBuku;
+begin
+	
+end;
+
+procedure lihatBuku;
+begin
+	
+end;
+
+procedure editBuku;
+begin
+	
+end;
+{/procedureBooks}
 
 {menu}
 procedure menu;
@@ -80,15 +104,15 @@ begin
 
 	case menu of
 		1: begin
-			writeln('tambah');
+			tambahBuku;
 		end;
 
 		2: begin
-			writeln('lihat');	
+			lihatBuku;
 		end;
 
 		3: begin
-			isLogout := true;
+			editBuku;
 		end;
 
 		4: begin

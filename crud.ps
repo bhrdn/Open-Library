@@ -1,0 +1,317 @@
+uses crt;
+var
+   pilih: byte;
+
+procedure Input_data;
+type
+ mhs=record
+  npm: string[7];
+  nama: string[25];
+  nilai: real;
+ end;
+
+var
+ fmhs: file of mhs;
+ rmhs: mhs;
+ lagi: char;
+
+begin
+ assign(fmhs,'mhs.dat');
+ rewrite(fmhs);
+ lagi:='y';
+ while upcase(lagi)='Y' do
+ begin
+ clrscr;
+  with rmhs do
+  begin
+   gotoxy(5,6)  ;write('Nomor Pokok Mahasiswa : ');
+   gotoxy(5,8)  ;write('Nama Mahasiswa        : ');
+   gotoxy(5,10) ;write('Nilai Mahasiswa       : ');
+   gotoxy(30,6) ;readln(npm);
+   gotoxy(30,8) ;readln(nama);
+   gotoxy(30,10);readln(nilai);
+  end;
+   write(fmhs,rmhs);
+   gotoxy(5,15) ;write('Masukan data lagi [Y/T] ? ');
+   readln(lagi);
+ end;
+   close(fmhs);
+end;
+
+
+
+procedure Tambah_data;
+type
+ mhs=record
+  npm: string[7];
+  nama: string[25];
+  nilai: real;
+ end;
+
+var
+ fmhs: file of mhs;
+ rmhs: mhs;
+ lagi: char;
+
+begin
+ assign(fmhs,'mhs.dat');
+ {$I-}
+ reset(fmhs);
+ {$I+};
+ if ioresult<>0 then rewrite(fmhs);
+ 
+    seek(fmhs,filesize(fmhs));
+    lagi:='y';
+    while upcase(lagi)='Y' do
+    begin
+    clrscr;
+     with rmhs do
+     begin
+      gotoxy(5,6)  ;write('Nomor Pokok Mahasiswa : ');
+      gotoxy(5,8)  ;write('Nama Mahasiswa        : ');
+      gotoxy(5,10) ;write('Nilai Mahasiswa       : ');
+      gotoxy(30,6) ;readln(npm);
+      gotoxy(30,8) ;readln(nama);
+      gotoxy(30,10);readln(nilai);
+     end;
+    write(fmhs,rmhs);
+    gotoxy(5,15) ;write('Masukan data lagi [Y/T] ? ');
+    readln(lagi);
+    end;
+    close(fmhs);
+end;
+
+
+
+procedure Lihat_data;
+type
+ mhs=record
+  npm: string[7];
+  nama: string[25];
+  nilai: real;
+ end;
+
+var
+ fmhs: file of mhs;
+ rmhs: mhs;
+
+begin
+ assign(fmhs,'mhs.dat');
+ reset(fmhs);
+ clrscr;
+ writeln('-------------------------------------------------------------');
+ writeln('NPM                    nama mahasiswa                   nilai');
+ writeln('-------------------------------------------------------------');
+  while not eof (fmhs) do
+  begin
+   read(fmhs,rmhs);
+   with rmhs do
+      writeln(npm:7,nama:25,nilai:29:0);
+  end;
+   writeln('-------------------------------------------------------------');
+   close(fmhs);
+   readln;
+end;
+
+
+
+procedure Cari_data;
+type
+ mhs=record
+  npm: string[7];
+  nama: string[25];
+  nilai: real;
+end;
+
+var
+ fmhs: file of mhs;
+ rmhs: mhs;
+ i,jml: integer;
+ nocari: string[7];
+ lagi: char;
+ ketemu: boolean;
+
+begin
+ assign(fmhs,'mhs.dat');
+ reset(fmhs);
+ jml:= filesize(fmhs);
+ lagi:='y';
+  while upcase(lagi)='Y' do
+ begin
+ clrscr;
+  ketemu:= false;
+  write('Masukan npm yang dicari : ');
+  readln(nocari);
+  writeln;
+   for i:= 1 to jml do
+   begin
+    seek(fmhs,i-1);
+    read(fmhs,rmhs);
+    if rmhs.npm=nocari then
+       begin
+        ketemu:= true;
+        writeln('Nama Mahasiswa  : ',rmhs.nama);
+        writeln('Nilai Mahasiswa : ',rmhs.nilai:2:0);
+       end;
+   end;
+    if not ketemu then
+       writeln('Tidak nomor tersebut!!!');
+       writeln;
+       write('cari data lagi [Y/T] ? ');
+       readln(lagi);
+ end;
+  close(fmhs);
+end;
+
+
+
+procedure Koreksi_data;
+type
+ mhs=record
+  npm: string[7];
+  nama: string[25];
+  nilai: real;
+end;
+
+var
+ fmhs: file of mhs;
+ rmhs: mhs;
+ i,jml: integer;
+ nocari: string[7];
+ ketemu: boolean;
+ lagi: char;
+
+begin
+ assign(fmhs,'mhs.dat');
+ reset(fmhs);
+ jml:= filesize(fmhs);
+ lagi:='Y';
+  while upcase(lagi)='Y' do
+ begin
+  ketemu:= false;
+  clrscr;
+   write('Nomor pokok mahasiswa yang dicari : '); readln(nocari);
+   writeln;
+    for i:= 1 to jml do
+    begin
+     seek(fmhs,i-1);
+     read(fmhs,rmhs);
+     if rmhs.npm=nocari then
+        begin
+         with rmhs do
+         begin
+          ketemu:= true;
+          writeln('Nomor Pokok Mahasiswa  : ',npm:7);
+          write('Koreksinya                 : '); readln(npm);
+          writeln('Nama Mahasiswa         : ',nama);
+          write('Koreksinya                 : '); readln(nama);
+          writeln('Nilai Mahasiswa        : ',nilai:2:0);
+          write('Koreksinya                 : '); readln(nilai);
+         end;
+        end;
+         seek(fmhs,i-1);
+         write(fmhs,rmhs);
+    end;
+    if not ketemu then
+       writeln('Tidak nomor tersebut!!!');
+       writeln;
+       write('ada lagi yang akan dikoreksi [Y/T] ? ');
+       readln(lagi);
+ end;
+  close(fmhs);
+end;
+
+
+
+procedure Hapus_data;
+type
+ mhs = record
+  npm: string[7];
+  nama: string[25];
+  nilai: real;
+end;
+
+var
+ fmhs: file of mhs;
+ rmhs: mhs;
+ nourut,i,jml: integer;
+ nocari: string[7];
+ ketemu: boolean;
+ lagi,ya: char;
+
+begin
+ assign(fmhs,'mhs.dat');
+ reset(fmhs);
+ lagi:= 'Y';
+  while upcase(lagi)='Y' do
+ begin
+ clrscr;
+  jml:= filesize(fmhs);
+  write('Nomor record yang dihapus (1  -',jml:3,') ? ');
+  readln(nourut);
+  writeln;
+  if (nourut < 1) or (nourut > jml) then
+     writeln('Tidak ada no record ini !!!')
+  else
+     begin
+      for i:= nourut to jml do
+      begin
+       seek(fmhs,i-1);
+       read(fmhs,rmhs);
+       with rmhs do
+       begin
+        writeln('Nama Mahasiswa   : ',rmhs.nama);
+        writeln('Nilai Mahasiswa  : ',rmhs.nilai:6:2);
+       end;
+      end;
+       writeln;
+       write('Yakin data ini akan dihapus [Y/T] ? '); readln(ya);
+       if upcase(ya) = 'Y' then
+          begin
+           seek(fmhs,nourut-1);
+           truncate(fmhs);
+          end;
+     end;
+      writeln;
+      write('ada lagi yang akan dicari [Y/T] ? '); readln(lagi);
+ end;
+  close(fmhs);
+end;
+
+
+
+
+begin
+ while true do
+ begin
+ clrscr;
+  gotoxy(20,2); write('**MENU UTAMA**');
+  gotoxy(5,5); write('1. Input data awal');
+  gotoxy(5,7); write('2. Tambah data');
+  gotoxy(5,9); write('3. Lihat semua data');
+  gotoxy(5,11); write('4. Lihat data tertentu');
+  gotoxy(5,13); write('5. Edit data');
+  gotoxy(5,15); write('6. Hapus data');
+  gotoxy(5,17); write('7. Selesai');
+  pilih := 0;
+   while (pilih < 1) or (pilih > 7 ) do
+  begin
+   gotoxy(5,20); write('Masukan pilihan : ');
+   readln(pilih);
+   if (pilih < 1) or (pilih > 7) then
+      write (^G);
+   case pilih of
+    1: Input_data;
+    2: Tambah_data;
+    3: begin
+        lihat_data;
+        writeln;
+        write('Tekan enter untuk kembali ke MENU');
+         readln;
+       end;
+    4: Cari_data;
+    5: Koreksi_data;
+    6: Hapus_data;
+    7: Exit;
+  end;
+ end;
