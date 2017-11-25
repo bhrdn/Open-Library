@@ -23,14 +23,22 @@ var
 	books : file of schemaBooks;
 	arrUsers : array of schemaUsers;
 	arrBooks : array of schemaBooks;
-	isLogin, isLogout, isAdmin: boolean;
+	isLogin, isLogout, isAdmin, isHome : boolean;
 
+	{variableBooks}
+	kodeBuku, judulBuku, jenisBuku  : string;
+	jumlahBuku, jumlahDipinjam 		: integer;
+	{/variableBooks}
+
+	{variableUsers}
+	username, password : string;
+	{/variableUsers}
 
 label start, finish;
 {/declare}
 
 
-{users}
+{functionUsers}
 function createUsers(user, passwd : string): boolean;
 begin
 	
@@ -45,9 +53,9 @@ function deleteUsers(id : string): boolean;
 begin
 	
 end;
-{/users}
+{/functionUsers}
 
-{books}
+{functionBooks}
 function addBooks(kodeBuku, judulBuku, jenisBuku, jumlahBuku, jumlahDipinjam : string): boolean;
 begin
 	
@@ -63,14 +71,16 @@ begin
 	
 end;
 
-function sortBooks(books : schemaBooks): boolean;
+function searchBooks(kodeBuku : string): integer;
 begin
-	
+	// search kodeBuku and return index of array (integer)
 end;
-{/books}
+{/functionBooks}
 
 {procedureBooks}
 procedure tambahBuku;
+var ans : string;
+
 begin
 	write('Kode Buku: '); readln(kodeBuku);
 	write('Judul Buku: '); readln(judulBuku);
@@ -80,7 +90,7 @@ begin
 	write('Apakah anda yakin akan menambahkan buku dengan kode: ', kodeBuku, ' ? [y/t]'); readln(ans);
 	if (ans = 'Y') or (ans = 'y') then
 		// addto files books.dat
-	else menu; 
+	else isHome := true; 
 end;
 
 procedure lihatBuku;
@@ -89,32 +99,38 @@ var
 	temp : schemaBooks;
 
 begin
-	{sorting_selection}
-	for i := 2 to length(arrBooks)-1 do
-	begin
-		j := i;
-		while (j > 0) and (arrBooks[j] < arrBooks[j-1]) do
-		begin
-			temp := arrBooks[j];
-			arrBooks[j] := arrBooks[j-1];
-			arrBooks[j-1] := temp;
-			j := j -1;
-		end;
-	end;
-	{/sorting_selection}
+	{sortingSelection}
+	// for i := 2 to length(arrBooks)-1 do
+	// begin
+	// 	j := i;
+	// 	while (j > 0) and (arrBooks[j] < arrBooks[j-1]) do
+	// 	begin
+	// 		temp := arrBooks[j];
+	// 		arrBooks[j] := arrBooks[j-1];
+	// 		arrBooks[j-1] := temp;
+	// 		j := j -1;
+	// 	end;
+	// end;
+	{/sortingSelection}
 
-	{show_datas}
+	{showDatas}
 	for i := 1 to length(arrBooks) do
 	begin
-		printf('%s. %s | %s | %s | %s | %s | %s', i, arrBooks[j].kodeBuku, arrBooks[j].judulBuku, arrBooks[j].jenisBuku, arrBooks[j].jumlahBuku, arrBooks[j].jumlahDipinjam);
+		// printf('%s. %s | %s | %s | %s | %s | %s', i, arrBooks[j].kodeBuku, arrBooks[j].judulBuku, arrBooks[j].jenisBuku, arrBooks[j].jumlahBuku, arrBooks[j].jumlahDipinjam);
 	end;
-	{/show_datas}
+	{/showDatas}
 end;
 
 procedure editBuku;
-var ans : string;
+var 
+	ans : string;
+	idx : integer;
+
+label start;
 
 begin
+	start: clrscr;
+
 	write('Masukkan kode buku: '); readln(kodeBuku);
 	idx := searchBooks(kodeBuku);
 
@@ -127,7 +143,7 @@ begin
 		write('Apakah anda yakin akan menambahkan buku dengan kode: ', kodeBuku, ' ? [y/t]'); readln(ans);
 		if (ans = 'Y') or (ans = 'y') then
 			// addto files books.dat
-		else menu; 
+		else isHome := true; 
 	end
 	else writeln('Kode Buku Tidak Ditemukan !!');
 
@@ -135,11 +151,11 @@ begin
 
 	if (ans = 'Y') and (ans = 'y') then 
 		goto start
-	else menu;
+	else isHome := true;
 end;
 {/procedureBooks}
 
-{menu}
+{procedureMenu}
 procedure menu;
 var
 	menu: integer;
@@ -186,7 +202,7 @@ begin
 
 	isLogin := true;
 end;
-{/menu}
+{/procedureMenu}
 
 procedure init;
 begin
@@ -201,6 +217,10 @@ BEGIN init; start:
 
 if isLogin then
 	menu
+else if isHome then begin
+	isHome := false;
+	goto start;
+end
 else login;
 
 if isLogout then 
