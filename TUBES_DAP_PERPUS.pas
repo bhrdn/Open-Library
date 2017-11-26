@@ -166,54 +166,47 @@ end;
 
 procedure lihatBuku;
 var
-	i, j : integer;
 	temp : schemaBooks;
+	i, j : integer;
 
-begin
-	writeln('anjeng');
-	// booksDat;
-	// if ioresult <> 0 then writeln('Data tidak ditemukan !!')
-	// else begin
-	// 	writeln('[MENU] LIHAT BUKU'); writeln; 
+begin booksDat;
 
-		// while not eof(books) do
-		// begin
-		// 	read(books, temp);
+	if ioresult <> 0 then begin
+		writeln('[FAILED] Empty record books.dat');
+		close(books); isHome := true;
+	end;
 
-		// 	with temp do
-		// 	begin
-		// 		arrBooks[i].kodeBuku 		:= temp.kodeBuku;
-		// 		arrBooks[i].judulBuku 		:= temp.judulBuku;
-		// 		arrBooks[i].jenisBuku 		:= temp.jenisBuku;
-		// 		arrBooks[i].jumlahBuku 		:= temp.jumlahBuku;
-		// 		arrBooks[i].jumlahDipinjam 	:= temp.jumlahDipinjam;
-		// 	end;
+	i := 0;
+	setlength(arrBooks, filesize(books)-1);
+	
+	while not eof(books) do 
+	begin
+		read(books, temp);
+		with temp do begin
+			arrBooks[i] := temp;
+		end;
+		i := i + 1;
+	end;
+	close(books);
 
-		// 	i := i + 1;
-		// end;
+	{for i := length(arrBooks) to 2 do
+	begin
+		for j := 2 to i do
+		begin
+			if arrBooks[j-1].kodeBuku > arrBooks[j].kodeBuku then begin
+				temp 		  := arrBooks[j-1];
+				arrBooks[j-1] := arrBooks[j];
+				arrBooks[j]   := temp;
+			end;
+		end;
+	end;}
 
+	for i := 0 to length(arrBooks) do
+	begin
+		writeln(i, '. ', arrBooks[i].kodeBuku, ' | ', arrBooks[i].judulBuku, ' | ',  arrBooks[i].jenisBuku, ' | ',  arrBooks[i].jumlahBuku, ' | ',  arrBooks[i].jumlahDipinjam);
+	end;
 
-		{sortingSelection}
-		// for i := 2 to length(arrBooks)-1 do
-		// begin
-		// 	j := i;
-		// 	while (j > 0) and (arrBooks[j].judulBuku < arrBooks[j-1].judulBuku) do
-		// 	begin
-		// 		temp 			:= arrBooks[j];
-		// 		arrBooks[j] 	:= arrBooks[j-1];
-		// 		arrBooks[j-1] 	:= temp;
-		// 		j 				:= j -1;
-		// 	end;
-		// end;
-		{/sortingSelection}
-
-		{showDatas}
-		// for i := 1 to length(arrBooks) do
-		// begin
-		// 	writeln(i, '. ', arrBooks[i].kodeBuku);
-		// end;
-		{/showDatas}
-	// end;
+	readln;
 end;
 
 procedure cariBuku;
