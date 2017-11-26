@@ -102,14 +102,18 @@ end;
 procedure tambahBuku;
 var 
 	ans : string;
-	tmp : schemaBooks;
+	temp : schemaBooks;
 
-begin
+label start;
+
+begin start:
+	clrscr;
+
 	booksDat;
 	if ioresult <> 0 then rewrite(books);
 	seek(books, filesize(books));
 
-	with tmp do
+	with temp do
 	begin
 		writeln('[MENU] TAMBAH BUKU'); writeln;
 		write('> Kode Buku: '); readln(kodeBuku);
@@ -119,13 +123,15 @@ begin
 		jumlahDipinjam := 0;
 	end;
 
-	writeln; write('Apakah anda yakin akan menambahkan buku dengan kode: ', kodeBuku, ' ? [y/t] '); readln(ans);
+	writeln; write('Apakah anda yakin akan menambahkan buku dengan kode: ', temp.kodeBuku, ' ? [y/t] '); readln(ans);
 	if upcase(ans) = 'Y' then begin
-		write(books, tmp);
-		writeln('[SUCCESS] Berhasil mendaftarkan buku dengan kode ', tmp.kodeBuku);
-		readln; isHome := true;
-	end
-	else isHome := true; 
+		write(books, temp); close(books);
+		writeln('[SUCCESS] Berhasil mendaftarkan buku dengan kode ', temp.kodeBuku); readln;
+	end;
+
+	writeln; write('Apakah anda ingin menambahkan buku lagi? [y/t] '); readln(ans);
+	if upcase(ans) = 'Y' then goto start
+	else isHome := true;
 end;
 
 procedure lihatBuku;
@@ -134,12 +140,11 @@ var
 	temp : schemaBooks;
 
 begin
-	booksDat;
-	if ioresult <> 0 then begin
-		writeln('Data tidak ditemukan !!');
-	end
-	else begin
-		writeln('[MENU] LIHAT BUKU'); writeln; 
+	writeln('anjeng');
+	// booksDat;
+	// if ioresult <> 0 then writeln('Data tidak ditemukan !!')
+	// else begin
+	// 	writeln('[MENU] LIHAT BUKU'); writeln; 
 
 		// while not eof(books) do
 		// begin
@@ -178,41 +183,55 @@ begin
 		// 	writeln(i, '. ', arrBooks[i].kodeBuku);
 		// end;
 		{/showDatas}
-	end;
+	// end;
 end;
 
 procedure cariBuku;
 var 
-	ans : string;
-	idx : integer;
-
+	ans    		  : string;
+	status, found : boolean;
+	i 	   	   	  : integer;
+	temp   		  : schemaBooks;
+	
 label start;
 
-begin
-	start: clrscr;
-
-	writeln('[MENU] EDIT BUKU'); writeln;
+begin booksDat;
+	start: clrscr; 
+	writeln('[MENU] CARI BUKU'); writeln;
 	write('Masukkan kode buku: '); readln(kodeBuku);
-	idx := searchBooks(kodeBuku);
 
-	if idx <> -1 then begin
-		write('Kode Buku: '); readln(kodeBuku);
-		write('Judul Buku: '); readln(judulBuku);
-		write('Jenis Buku: '); readln(jenisBuku);
-		write('Jumlah Buku: '); readln(jumlahBuku);
+	status := true; found := false; i := 0;
+	while (status) and (i <> filesize(books)) do
+	begin
+		seek(books, i);
+		read(books, temp);
 
-		write('Apakah anda yakin akan menambahkan buku dengan kode: ', kodeBuku, ' ? [y/t]'); readln(ans);
-		if upcase(ans) = 'Y' then
-			// addto files books.dat
-		else isHome := true; 
+		if temp.kodeBuku = kodeBuku then begin
+			writeln('Kode Buku: ', temp.kodeBuku);
+			writeln('Judul Buku: ', temp.judulBuku);
+			writeln('Jenis Buku: ', temp.jenisBuku);
+			writeln('Jumlah Buku: ', temp.jumlahBuku);
+			writeln('jumlah Dipinjam: ', temp.jumlahDipinjam);
+
+			status := false;
+			found  := true;
+		end
+		else i := i + 1;	
+	end; 
+	
+	if found then begin
+		writeln; write('Apakah anda masih ingin mencari buku? [y/t] '); readln(ans);
+		if upcase(ans) = 'Y' then 
+			goto start
+		else isHome := true;
 	end
-	else writeln('Kode Buku Tidak Ditemukan !!');
-
-	write('Apakah anda masih ingin mencari buku? [y/t]'); readln(ans);
-
-	if (ans = 'Y') and (ans = 'y') then 
-		goto start
-	else isHome := true;
+	else begin
+		writeln('[FAILED] Data buku tidak ditemukan !!');
+		writeln; write('Apakah anda masih ingin mencari buku? [y/t] '); readln(ans);
+		if upcase(ans) = 'Y' then 
+			goto start
+		else isHome := true;
+	end;
 end;
 
 procedure hapusBuku;
@@ -273,6 +292,12 @@ begin
 		end;
 	end;
 end;
+
+procedure showMenu;
+begin
+	if isAdmin then	menuAdmin
+	else menuDefault;
+end;
 {/procedureMenu}
 
 {procedureOther}
@@ -288,21 +313,45 @@ end;
 procedure login;
 var
 	user, passwd: string;
+	temp : schemaUsers;
 
-begin
-	writeln('LOGIN OPEN LIBRARY TELKOM UNIVERSITY');
+label start;
+
+begin start:
+	clrscr;
+	writeln('[LOGIN] OPEN LIBRARY TELKOM UNIVERSITY');
 	write('Username: '); readln(user);
 	write('Password: '); readln(passwd);
 
-	isLogin := true;
+	usersDat;
+	if ioresult <> 0 then writeln('Empty record users.dat')
+	else begin
+		while not eof(users) do 
+		begin
+			read(users, temp);
+			with temp do
+			begin
+				if (temp.username = user) and (temp.password = passwd) then begin
+					isLogin := true;
+					if temp.status = 1 then isAdmin := true
+					else isAdmin := false;
+				end;
+			end;
+		end;
+
+		if not isLogin then begin
+			writeln('[FAILED] Login Gagal !!'); readln;
+			goto start;
+		end
+		else showMenu;
+	end;
 end;
 {/procedureOther}
 
 BEGIN init; start:
 
 if isLogin then
-	if isAdmin then menuAdmin
-	else menuDefault
+	showMenu
 else if isHome then begin
 	isHome := false;
 	goto start;
