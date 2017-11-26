@@ -218,6 +218,7 @@ begin booksDat;
 		end
 		else i := i + 1;	
 	end; 
+	close(books);	
 	
 	if found then begin
 		writeln; write('Apakah anda masih ingin mencari buku? [y/t] '); readln(ans);
@@ -314,37 +315,35 @@ procedure login;
 var
 	user, passwd: string;
 	temp : schemaUsers;
+	i : integer;
 
 label start;
 
-begin start:
-	clrscr;
-	writeln('[LOGIN] OPEN LIBRARY TELKOM UNIVERSITY');
-	write('Username: '); readln(user);
-	write('Password: '); readln(passwd);
+begin usersDat;
+	
+	while not isLogin do begin
+		clrscr;
+		writeln('[LOGIN] OPEN LIBRARY TELKOM UNIVERSITY');
+		write('Username: '); readln(user);
+		write('Password: '); readln(passwd);
 
-	usersDat;
-	if ioresult <> 0 then writeln('Empty record users.dat')
-	else begin
-		while not eof(users) do 
+		for i := 1 to filesize(users) do
 		begin
+			seek(users, i-1);
 			read(users, temp);
-			with temp do
-			begin
-				if (temp.username = user) and (temp.password = passwd) then begin
-					isLogin := true;
-					if temp.status = 1 then isAdmin := true
-					else isAdmin := false;
-				end;
-			end;
-		end;
 
-		if not isLogin then begin
-			writeln('[FAILED] Login Gagal !!'); readln;
-			goto start;
-		end
-		else showMenu;
+			if (temp.username = user) and (temp.password = passwd) then begin
+				isLogin := true;
+				if temp.status = 1 then isAdmin := true
+				else isAdmin := false;
+			end
+			else begin
+				writeln('[FAILED] Login Gagal !!'); readln;
+			end;
+		end; 
 	end;
+	showMenu;
+
 end;
 {/procedureOther}
 
