@@ -77,6 +77,20 @@ begin
 end;
 {/functionBooks}
 
+{procedureAsip}
+procedure usersDat;
+begin
+	assign(users, 'users.dat');
+	reset(users);
+end;
+
+procedure booksDat;
+begin
+	assign(books, 'books.dat');
+	reset(books);
+end;
+{/procedureAsip}
+
 {procedureUsers}
 procedure tambahUsers;
 begin
@@ -86,17 +100,31 @@ end;
 
 {procedureBooks}
 procedure tambahBuku;
-var ans : string;
+var 
+	ans : string;
+	tmp : schemaBooks;
 
 begin
-	write('Kode Buku: '); readln(kodeBuku);
-	write('Judul Buku: '); readln(judulBuku);
-	write('Jenis Buku: '); readln(jenisBuku);
-	write('Jumlah Buku: '); readln(jumlahBuku);
+	booksDat;
+	if ioresult <> 0 then rewrite(books);
+	seek(books, filesize(books));
 
-	write('Apakah anda yakin akan menambahkan buku dengan kode: ', kodeBuku, ' ? [y/t]'); readln(ans);
-	if (ans = 'Y') or (ans = 'y') then
-		// addto files books.dat
+	with tmp do
+	begin
+		writeln('[MENU] TAMBAH BUKU'); writeln;
+		write('> Kode Buku: '); readln(kodeBuku);
+		write('> Judul Buku: '); readln(judulBuku);
+		write('> Jenis Buku: '); readln(jenisBuku);
+		write('> Jumlah Buku: '); readln(jumlahBuku);
+		jumlahDipinjam := 0;
+	end;
+
+	writeln; write('Apakah anda yakin akan menambahkan buku dengan kode: ', kodeBuku, ' ? [y/t] '); readln(ans);
+	if upcase(ans) = 'Y' then begin
+		write(books, tmp);
+		writeln('[SUCCESS] Berhasil mendaftarkan buku dengan kode ', tmp.kodeBuku);
+		readln; isHome := true;
+	end
 	else isHome := true; 
 end;
 
@@ -106,29 +134,54 @@ var
 	temp : schemaBooks;
 
 begin
-	{sortingSelection}
-	// for i := 2 to length(arrBooks)-1 do
-	// begin
-	// 	j := i;
-	// 	while (j > 0) and (arrBooks[j] < arrBooks[j-1]) do
-	// 	begin
-	// 		temp := arrBooks[j];
-	// 		arrBooks[j] := arrBooks[j-1];
-	// 		arrBooks[j-1] := temp;
-	// 		j := j -1;
-	// 	end;
-	// end;
-	{/sortingSelection}
+	booksDat;
+	if ioresult <> 0 then begin
+		writeln('Data tidak ditemukan !!');
+	end
+	else begin
+		writeln('[MENU] LIHAT BUKU'); writeln; 
 
-	{showDatas}
-	for i := 1 to length(arrBooks) do
-	begin
-		// printf('%s. %s | %s | %s | %s | %s | %s', i, arrBooks[j].kodeBuku, arrBooks[j].judulBuku, arrBooks[j].jenisBuku, arrBooks[j].jumlahBuku, arrBooks[j].jumlahDipinjam);
+		// while not eof(books) do
+		// begin
+		// 	read(books, temp);
+
+		// 	with temp do
+		// 	begin
+		// 		arrBooks[i].kodeBuku 		:= temp.kodeBuku;
+		// 		arrBooks[i].judulBuku 		:= temp.judulBuku;
+		// 		arrBooks[i].jenisBuku 		:= temp.jenisBuku;
+		// 		arrBooks[i].jumlahBuku 		:= temp.jumlahBuku;
+		// 		arrBooks[i].jumlahDipinjam 	:= temp.jumlahDipinjam;
+		// 	end;
+
+		// 	i := i + 1;
+		// end;
+
+
+		{sortingSelection}
+		// for i := 2 to length(arrBooks)-1 do
+		// begin
+		// 	j := i;
+		// 	while (j > 0) and (arrBooks[j].judulBuku < arrBooks[j-1].judulBuku) do
+		// 	begin
+		// 		temp 			:= arrBooks[j];
+		// 		arrBooks[j] 	:= arrBooks[j-1];
+		// 		arrBooks[j-1] 	:= temp;
+		// 		j 				:= j -1;
+		// 	end;
+		// end;
+		{/sortingSelection}
+
+		{showDatas}
+		// for i := 1 to length(arrBooks) do
+		// begin
+		// 	writeln(i, '. ', arrBooks[i].kodeBuku);
+		// end;
+		{/showDatas}
 	end;
-	{/showDatas}
 end;
 
-procedure editBuku;
+procedure cariBuku;
 var 
 	ans : string;
 	idx : integer;
@@ -138,6 +191,7 @@ label start;
 begin
 	start: clrscr;
 
+	writeln('[MENU] EDIT BUKU'); writeln;
 	write('Masukkan kode buku: '); readln(kodeBuku);
 	idx := searchBooks(kodeBuku);
 
@@ -148,7 +202,7 @@ begin
 		write('Jumlah Buku: '); readln(jumlahBuku);
 
 		write('Apakah anda yakin akan menambahkan buku dengan kode: ', kodeBuku, ' ? [y/t]'); readln(ans);
-		if (ans = 'Y') or (ans = 'y') then
+		if upcase(ans) = 'Y' then
 			// addto files books.dat
 		else isHome := true; 
 	end
@@ -160,50 +214,75 @@ begin
 		goto start
 	else isHome := true;
 end;
+
+procedure hapusBuku;
+begin
+	
+end;
 {/procedureBooks}
 
 {procedureMenu}
-procedure menu;
+procedure menuDefault;
 var
 	menu: integer;
 
 begin
 	clrscr;
-
-	writeln('OPEN LIBRARY TELKOM UNIVERSITY');
-	writeln('1. Tambah Data Buku');
-	writeln('2. Lihat Data Buku');
-	writeln('3. Edit Data Buku');
-	writeln('4. Logout');
-	writeln;
-	writeln('99. Create users (for administrator)');
-	writeln;
+	writeln('[MENU] BOOKS');
+	writeln('1. Lihat Data Buku');
+	writeln('2. Cari Data Buku');
+	writeln('3. Keluar'); writeln;
 	write('Pilih menu: '); readln(menu);
 
+	clrscr;
 	case menu of
-		1: begin
-			tambahBuku;
-		end;
-
-		2: begin
-			lihatBuku;
-		end;
-
+		1: lihatBuku;
+		2: cariBuku;
 		3: begin
-			editBuku;
-		end;
-
-		4: begin
 			isLogout := true;
 		end;
+	end;
+end;
 
-		5: begin
-			if not isAdmin then 
-				isHome := true
-			else tambahUsers;
+procedure menuAdmin;
+var menu : integer;
+
+begin
+	clrscr;
+	writeln('[MENU] BOOKS');
+	writeln('1. Lihat Data Buku');
+	writeln('2. Cari/Edit Data Buku');
+	writeln('3. Tambah Data Buku');
+	writeln('4. Hapus Data Buku');
+	writeln;
+
+	writeln('[MENU] EXTRA');
+	writeln('5. Tambah Users');
+	writeln('6. Keluar'); writeln;
+	write('Pilih menu: '); readln(menu);
+
+	clrscr;
+	case menu of
+		1: lihatBuku;
+		2: cariBuku;
+		3: tambahBuku;
+		4: hapusBuku;
+		5: tambahUsers;
+		6: begin
+			isLogout := true;
 		end;
 	end;
+end;
+{/procedureMenu}
 
+{procedureOther}
+procedure init;
+begin
+	clrscr;
+	isLogin  := false;
+	isLogout := false;
+	isAdmin  := false;
+	isHome 	 := false;
 end;
 
 procedure login;
@@ -217,21 +296,13 @@ begin
 
 	isLogin := true;
 end;
-{/procedureMenu}
-
-procedure init;
-begin
-	clrscr;
-	isLogin  := false;
-	isLogout := false;
-end;
-
-
+{/procedureOther}
 
 BEGIN init; start:
 
 if isLogin then
-	menu
+	if isAdmin then menuAdmin
+	else menuDefault
 else if isHome then begin
 	isHome := false;
 	goto start;
