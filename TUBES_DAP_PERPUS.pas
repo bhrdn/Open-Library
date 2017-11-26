@@ -99,6 +99,36 @@ end;
 {/procedureUsers}
 
 {procedureBooks}
+procedure editBuku(var kodeBuku : string);
+var
+	temp : schemaBooks;
+	ans  : string;
+	i 	 : integer;
+
+begin
+
+	for i := 1 to filesize(books) do
+	begin
+		seek(books, i-1);
+		read(books, temp);
+
+		if temp.kodeBuku = kodeBuku then begin clrscr;
+			writeln('>> Kode Buku: ', temp.kodeBuku);
+			write('> Judul Buku: '); readln(temp.judulBuku);
+			write('> Jenis Buku: '); readln(temp.jenisBuku);
+			write('> Jumlah Buku: '); readln(temp.jumlahBuku);
+			write('> Jumlah Dipinjam: '); readln(temp.jumlahDipinjam);
+
+			writeln; write('>> Apakah anda yakin akan mengedit buku dengan kode: ', temp.kodeBuku, ' ? [y/t] '); readln(ans);
+			if upcase(ans) = 'Y' then begin
+				seek(books, i-1); write(books, temp);
+				writeln('[SUCCESS] Berhasil mengedit buku dengan kode ', temp.kodeBuku);
+				readln; isHome := true;
+			end;
+		end; 	
+	end;
+end;
+
 procedure tambahBuku;
 var 
 	ans : string;
@@ -123,13 +153,13 @@ begin start:
 		jumlahDipinjam := 0;
 	end;
 
-	writeln; write('Apakah anda yakin akan menambahkan buku dengan kode: ', temp.kodeBuku, ' ? [y/t] '); readln(ans);
+	writeln; write('>> Apakah anda yakin akan menambahkan buku dengan kode: ', temp.kodeBuku, ' ? [y/t] '); readln(ans);
 	if upcase(ans) = 'Y' then begin
 		write(books, temp); close(books);
 		writeln('[SUCCESS] Berhasil mendaftarkan buku dengan kode ', temp.kodeBuku); readln;
 	end;
 
-	writeln; write('Apakah anda ingin menambahkan buku lagi? [y/t] '); readln(ans);
+	writeln; write('>> Apakah anda ingin menambahkan buku lagi? [y/t] '); readln(ans);
 	if upcase(ans) = 'Y' then goto start
 	else isHome := true;
 end;
@@ -188,30 +218,30 @@ end;
 
 procedure cariBuku;
 var 
-	temp  : schemaBooks;
-	found : boolean;
-	ans   : string;
-	i 	  : integer;
+	temp  	 	 : schemaBooks;
+	found 	 	 : boolean;
+	ans, idBooks : string;
+	i 			 : integer;
 
-begin booksDat;
+begin
 
 	ans := 'Y';
 	while upcase(ans) = 'Y' do
-	begin
+	begin booksDat;
 		clrscr; found := false;
 		writeln('[MENU] CARI BUKU'); writeln;
-		write('Masukkan kode buku: '); readln(kodeBuku);
+		write('> Masukkan kode buku: '); readln(idBooks);
 		
 		for i := 1 to filesize(books) do
 		begin
 			seek(books, i-1);
 			read(books, temp);
 
-			if temp.kodeBuku = kodeBuku then begin
-				writeln('> Judul Buku: ', temp.judulBuku);
-				writeln('> Jenis Buku: ', temp.jenisBuku);
-				writeln('> Jumlah Buku: ', temp.jumlahBuku);
-				writeln('> Jumlah Dipinjam: ', temp.jumlahDipinjam);
+			if temp.kodeBuku = idBooks then begin
+				writeln('- Judul Buku: ', temp.judulBuku);
+				writeln('- Jenis Buku: ', temp.jenisBuku);
+				writeln('- Jumlah Buku: ', temp.jumlahBuku);
+				writeln('- Jumlah Dipinjam: ', temp.jumlahDipinjam);
 
 				found := true;
 			end;
@@ -219,9 +249,17 @@ begin booksDat;
 
 		if not found then writeln('[FAILED] Data buku tidak ditemukan !!');
 
-		writeln; write('Apakah anda masih ingin mencari buku? [y/t] '); readln(ans);
+		if isAdmin and found then begin
+			writeln; write('>> Apakah anda ingin mengedit data? [y/t] '); readln(ans);
+			if upcase(ans) = 'Y' then begin
+				editBuku(idBooks);
+			end;
+		end;
+		close(books); 
+
+		writeln; write('>> Apakah anda masih ingin mencari buku lain? [y/t] '); readln(ans);
 	end;
-	close(books); isHome := true;
+	isHome := true;
 
 end;
 
@@ -330,7 +368,7 @@ begin usersDat;
 			end;
 		end; 
 	end;
-	showMenu;
+	close(users); showMenu;
 
 end;
 {/procedureOther}
