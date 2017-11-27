@@ -34,6 +34,8 @@ var
 	username, password : string;
 	{/variableUsers}
 
+	temp : schemaUsers;
+
 label start, finish;
 {/declare}
 
@@ -161,8 +163,38 @@ end;
 
 {procedureUsers}
 procedure tambahUsers;
-begin
-	
+var
+	temp 	  : schemaUsers;
+	stat, ans : string;
+
+begin ans := 'Y';
+
+	while upcase(ans) = 'Y' do begin
+		usersDat;
+		if ioresult <> 0 then rewrite(users);
+		seek(users, filesize(users));
+
+		with temp do
+		begin
+			writeln('[MENU] TAMBAH USERS'); writeln;
+			write('> Username: '); readln(username);
+			write('> Password: '); readln(password);
+			write('> Status admin [y/t]: '); readln(stat);
+
+			if upcase(stat) = 'Y' then status := 1
+			else status := 0;
+		end;
+
+		writeln; write('>> Apakah anda yakin akan menambahkan user baru? [y/t] '); readln(ans);
+		if upcase(ans) = 'Y' then begin
+			write(users, temp); close(users);
+			writeln('[SUCCESS] Berhasil mendaftarkan user baru'); readln;
+		end;
+
+		writeln; write('>> Apakah anda ingin menambahkan user lagi? [y/t] '); readln(ans);
+	end;
+	isHome := true;
+
 end;
 {/procedureUsers}
 
@@ -437,6 +469,18 @@ end;
 {/procedureOther}
 
 BEGIN init; start:
+
+usersDat;
+
+while not eof(users) do begin
+	read(users, temp);
+	with temp do begin
+		writeln(temp.username, temp.password, temp.status);
+	end;
+end;
+close(users);
+
+readln;
 
 if isLogin then
 	showMenu
