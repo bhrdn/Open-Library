@@ -37,6 +37,71 @@ var
 label start, finish;
 {/declare}
 
+{procedureAsip}
+procedure usersDat;
+begin
+	assign(users, 'users.dat');
+	reset(users);
+end;
+
+procedure booksDat;
+begin
+	assign(books, 'books.dat');
+	reset(books);
+end;
+{/procedureAsip}
+
+{functionOther}
+function refreshData(tipe : string): boolean;
+var
+	tempUsers : schemaUsers;
+	tempBooks : schemaBooks;
+	i 		  : integer;
+
+begin
+	case tipe of
+		'users': begin usersDat;
+			if ioresult <> 0 then begin
+				writeln('[FAILED] Empty record users.dat');
+				close(users); isHome := true;
+			end;
+
+			i := 0;
+			setlength(arrUsers, filesize(users)-1);
+			
+			while not eof(users) do 
+			begin
+				read(users, tempUsers);
+				with tempUsers do begin
+					arrUsers[i] := tempUsers;
+				end;
+				i := i + 1;
+			end;
+			close(users);
+		end;
+
+		'books': begin booksDat;
+			if ioresult <> 0 then begin
+				writeln('[FAILED] Empty record books.dat');
+				close(books); isHome := true;
+			end;
+
+			i := 0;
+			setlength(arrBooks, filesize(books)-1);
+			
+			while not eof(books) do 
+			begin
+				read(books, tempBooks);
+				with tempBooks do begin
+					arrBooks[i] := tempBooks;
+				end;
+				i := i + 1;
+			end;
+			close(books);
+		end;
+	end;
+end;
+{/functionOther}
 
 {functionUsers}
 function createUsers(user, passwd : string): boolean;
@@ -72,24 +137,22 @@ begin
 end;
 
 function searchBooks(kodeBuku : string): integer;
-begin
-	// search kodeBuku and return index of array (integer)
+var
+	temp : schemaBooks;
+	i    : integer;
+
+begin refreshData('books');
+
+	writeln(kodeBuku); readln;
+
+	for i := 0 to length(arrBooks) do
+	begin
+		if arrBooks[i].kodeBuku = kodeBuku then searchBooks := i
+		else searchBooks := -1;
+	end;
+
 end;
 {/functionBooks}
-
-{procedureAsip}
-procedure usersDat;
-begin
-	assign(users, 'users.dat');
-	reset(users);
-end;
-
-procedure booksDat;
-begin
-	assign(books, 'books.dat');
-	reset(books);
-end;
-{/procedureAsip}
 
 {procedureUsers}
 procedure tambahUsers;
@@ -210,47 +273,18 @@ begin booksDat;
 end;
 
 procedure cariBuku;
-var 
-	temp  	 	 : schemaBooks;
-	found 	 	 : boolean;
-	ans, idBooks : string;
-	i 			 : integer;
+var
+	ans, kodeBuku : string;
 
-begin
+begin ans := 'Y';
 
-	ans := 'Y';
-	while upcase(ans) = 'Y' do
-	begin booksDat;
-		clrscr; found := false;
-		writeln('[MENU] CARI BUKU'); writeln;
-		write('> Masukkan kode buku: '); readln(idBooks);
-		
-		for i := 1 to filesize(books) do
-		begin
-			seek(books, i-1);
-			read(books, temp);
+	while upcase(ans) = 'Y' do begin
+		write('>> Masukkan Kode Buku: '); readln(kodeBuku);
+		writeln(searchBooks(kodeBuku));
 
-			if temp.kodeBuku = idBooks then begin
-				writeln('- Judul Buku: ', temp.judulBuku);
-				writeln('- Jenis Buku: ', temp.jenisBuku);
-				writeln('- Jumlah Buku: ', temp.jumlahBuku);
-				writeln('- Jumlah Dipinjam: ', temp.jumlahDipinjam);
+		readln;
 
-				found := true;
-			end;
-		end;
-
-		if not found then writeln('[FAILED] Data buku tidak ditemukan !!');
-
-		if isAdmin and found then begin
-			writeln; write('>> Apakah anda ingin mengedit data? [y/t] '); readln(ans);
-			if upcase(ans) = 'Y' then begin
-				editBuku(idBooks);
-			end;
-		end;
-		close(books); 
-
-		writeln; write('>> Apakah anda masih ingin mencari buku lain? [y/t] '); readln(ans);
+		ans := 't';
 	end;
 	isHome := true;
 
