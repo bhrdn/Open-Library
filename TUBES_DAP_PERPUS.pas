@@ -149,6 +149,9 @@ begin index := searchBooks(idBooks);
 	if index <> -1 then begin booksDat;
 
 		if ioresult <> 0 then deleteBooks := false;
+		
+		for i := index to filesize(books) do seek(books, i-1);
+
 		seek(books, index); truncate(books); close(books);
 		refreshData('books'); deleteBooks := true;
 
@@ -234,21 +237,37 @@ var
 	temp : schemaBooks;
 	i, j : integer;
 
-begin refreshData('books');
-	if length(arrBooks) <> 0 then begin
-		{todo: sorting}
-		for i := 0 to length(arrBooks) do
-		begin
-			if arrBooks[i].kodeBuku <> '' then begin
-				writeln(i+1, '. ', arrBooks[i].kodeBuku, ' | ', arrBooks[i].judulBuku, ' | ',  arrBooks[i].jenisBuku, ' | ',  arrBooks[i].jumlahBuku, ' | ',  arrBooks[i].jumlahDipinjam);
-			end;
-		end;
-	end
-	else begin
-		writeln('[FAILED] Empty record books.dat'); isHome := false;
-	end;
+// begin refreshData('books');
+// 	if length(arrBooks) <> 0 then begin
+// 		{todo: sorting}
+// 		for i := 0 to length(arrBooks) do
+// 		begin
+// 			if arrBooks[i].kodeBuku <> '' then begin
+// 				writeln(i+1, '. ', arrBooks[i].kodeBuku, ' | ', arrBooks[i].judulBuku, ' | ',  arrBooks[i].jenisBuku, ' | ',  arrBooks[i].jumlahBuku, ' | ',  arrBooks[i].jumlahDipinjam);
+// 			end;
+// 		end;
+// 	end
+// 	else begin
+// 		writeln('[FAILED] Empty record books.dat'); isHome := false;
+// 	end;
 
-	readln;
+// 	readln;
+// end;
+
+begin booksDat;
+
+	i := 1;	
+	while not eof(books) do begin
+		
+		read(books, temp);
+		with temp do begin
+			writeln(i, '. ', temp.kodeBuku, ' | ', temp.judulBuku, ' | ',  temp.jenisBuku, ' | ',  temp.jumlahBuku, ' | ',  temp.jumlahDipinjam);
+		end;
+		i := i + 1;
+
+	end;
+	close(books); readln;
+
 end;
 
 procedure cariBuku;
@@ -258,7 +277,7 @@ var
 
 begin ans := 'Y';
 
-	while upcase(ans) = 'Y' do begin
+	while upcase(ans) = 'Y' do begin clrscr;
 		write('>> Masukkan Kode Buku: '); readln(kodeBuku);
 		index := searchBooks(kodeBuku);
 
@@ -289,7 +308,7 @@ var
 
 begin ans := 'Y';
 
-	while upcase(ans) = 'Y' do begin
+	while upcase(ans) = 'Y' do begin clrscr;
 		write('>> Masukkan Kode Buku: '); readln(kodeBuku);
 		index := searchBooks(kodeBuku);
 
