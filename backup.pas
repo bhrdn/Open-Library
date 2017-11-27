@@ -67,7 +67,7 @@ begin
 			end;
 
 			i := 0;
-			setlength(arrUsers, filesize(users));
+			setlength(arrUsers, filesize(users)-1);
 			
 			while not eof(users) do 
 			begin
@@ -87,7 +87,7 @@ begin
 			end;
 
 			i := 0;
-			setlength(arrBooks, filesize(books));
+			setlength(arrBooks, filesize(books)-1);
 			
 			while not eof(books) do 
 			begin
@@ -121,6 +121,21 @@ end;
 {/functionUsers}
 
 {functionBooks}
+function addBooks(kodeBuku, judulBuku, jenisBuku, jumlahBuku, jumlahDipinjam : string): boolean;
+begin
+	
+end;
+
+function editBooks(kodeBuku, jumlahBuku, jumlahDipinjam : string): boolean;
+begin
+	
+end;
+
+function deleteBooks(kodeBuku : string): boolean;
+begin
+	
+end;
+
 function searchBooks(kodeBuku : string): integer;
 var
 	temp : schemaBooks;
@@ -136,23 +151,6 @@ begin refreshData('books');
 		else searchBooks := -1;
 	end;
 
-end;
-
-function deleteBooks(idBooks : string): boolean;
-var
-	temp  	 : schemaBooks;
-	found 	 : boolean;
-	i, index : integer;
-
-begin index := searchBooks(idBooks);
-
-	if index <> -1 then begin booksDat;
-
-		if ioresult <> 0 then deleteBooks := false;
-		seek(books, index); truncate(books); close(books);
-		refreshData('books'); deleteBooks := true;
-
-	end;
 end;
 {/functionBooks}
 
@@ -234,18 +232,41 @@ var
 	temp : schemaBooks;
 	i, j : integer;
 
-begin refreshData('books');
-	if length(arrBooks) <> 0 then begin
-		{todo: sorting}
-		for i := 0 to length(arrBooks) do
+begin booksDat;
+
+	if ioresult <> 0 then begin
+		writeln('[FAILED] Empty record books.dat');
+		close(books); isHome := true;
+	end;
+
+	i := 0;
+	setlength(arrBooks, filesize(books)-1);
+	
+	while not eof(books) do 
+	begin
+		read(books, temp);
+		with temp do begin
+			arrBooks[i] := temp;
+		end;
+		i := i + 1;
+	end;
+	close(books);
+
+	{for i := length(arrBooks) to 2 do
+	begin
+		for j := 2 to i do
 		begin
-			if arrBooks[i].kodeBuku <> '' then begin
-				writeln(i+1, '. ', arrBooks[i].kodeBuku, ' | ', arrBooks[i].judulBuku, ' | ',  arrBooks[i].jenisBuku, ' | ',  arrBooks[i].jumlahBuku, ' | ',  arrBooks[i].jumlahDipinjam);
+			if arrBooks[j-1].kodeBuku > arrBooks[j].kodeBuku then begin
+				temp 		  := arrBooks[j-1];
+				arrBooks[j-1] := arrBooks[j];
+				arrBooks[j]   := temp;
 			end;
 		end;
-	end
-	else begin
-		writeln('[FAILED] Empty record books.dat'); isHome := false;
+	end;}
+
+	for i := 0 to length(arrBooks) do
+	begin
+		writeln(i, '. ', arrBooks[i].kodeBuku, ' | ', arrBooks[i].judulBuku, ' | ',  arrBooks[i].jenisBuku, ' | ',  arrBooks[i].jumlahBuku, ' | ',  arrBooks[i].jumlahDipinjam);
 	end;
 
 	readln;
@@ -283,35 +304,8 @@ begin ans := 'Y';
 end;
 
 procedure hapusBuku;
-var
-	ans, kodeBuku : string;
-	index 		  : integer;
-
-begin ans := 'Y';
-
-	while upcase(ans) = 'Y' do begin
-		write('>> Masukkan Kode Buku: '); readln(kodeBuku);
-		index := searchBooks(kodeBuku);
-
-		if index <> -1 then begin
-			writeln('- Judul Buku: ', arrBooks[index].judulBuku);
-			writeln('- Jenis Buku: ', arrBooks[index].jenisBuku);
-			writeln('- Jumlah Buku: ', arrBooks[index].jumlahBuku);
-			writeln('- Jumlah Dipinjam: ', arrBooks[index].jumlahDipinjam);
-
-			if isAdmin then begin
-				writeln; write('>> Apakah anda ingin hapus data? [y/t] '); readln(ans);
-				if upcase(ans) = 'Y' then begin
-					if deleteBooks(kodeBuku) then writeln('[SUCCESS] Berhasil menghapus data buku !!')
-					else writeln('[FAILED] Gagal menghapus data buku !!');
-				end;
-			end;
-		end else writeln('[FAILED] Data buku tidak ditemukan !!');
-
-		writeln; write('>> Apakah anda masih ingin menghapus buku lain? [y/t] '); readln(ans);
-	end;
-	isHome := true;
-
+begin
+	
 end;
 {/procedureBooks}
 
@@ -388,9 +382,10 @@ end;
 procedure login;
 var
 	user, passwd : string;
+	temp 		 : schemaUsers;
 	i 			 : integer;
 
-begin refreshData('users');
+begin usersDat;
 	
 	while not isLogin do begin
 		clrscr;
@@ -398,21 +393,22 @@ begin refreshData('users');
 		write('Username: '); readln(user);
 		write('Password: '); readln(passwd);
 
-		for i := 0 to length(arrUsers) do
+		for i := 1 to filesize(users) do
 		begin
-			if (arrUsers[i].username = user) and (arrUsers[i].password = passwd) then begin
+			seek(users, i-1);
+			read(users, temp);
+
+			if (temp.username = user) and (temp.password = passwd) then begin
 				isLogin := true;
-				if arrUsers[i].status = 1 then isAdmin := true
+				if temp.status = 1 then isAdmin := true
 				else isAdmin := false;
-				break;
 			end
 			else begin
-				writeln('[FAILED] Login Gagal !!');
-				readln; break;
+				writeln('[FAILED] Login Gagal !!'); readln;
 			end;
 		end; 
 	end;
-	showMenu;
+	close(users); showMenu;
 
 end;
 {/procedureOther}
