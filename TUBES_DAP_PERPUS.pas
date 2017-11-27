@@ -142,12 +142,12 @@ var
 	i    : integer;
 
 begin refreshData('books');
-
-	writeln(kodeBuku); readln;
-
+	
 	for i := 0 to length(arrBooks) do
 	begin
-		if arrBooks[i].kodeBuku = kodeBuku then searchBooks := i
+		if arrBooks[i].kodeBuku = kodeBuku then begin
+			searchBooks := i; break;
+		end 
 		else searchBooks := -1;
 	end;
 
@@ -275,16 +275,29 @@ end;
 procedure cariBuku;
 var
 	ans, kodeBuku : string;
+	index 		  : integer;
 
 begin ans := 'Y';
 
 	while upcase(ans) = 'Y' do begin
 		write('>> Masukkan Kode Buku: '); readln(kodeBuku);
-		writeln(searchBooks(kodeBuku));
+		index := searchBooks(kodeBuku);
 
-		readln;
+		if index <> -1 then begin
+			writeln('- Judul Buku: ', arrBooks[index].judulBuku);
+			writeln('- Jenis Buku: ', arrBooks[index].jenisBuku);
+			writeln('- Jumlah Buku: ', arrBooks[index].jumlahBuku);
+			writeln('- Jumlah Dipinjam: ', arrBooks[index].jumlahDipinjam);
 
-		ans := 't';
+			if isAdmin then begin
+				writeln; write('>> Apakah anda ingin mengedit data? [y/t] '); readln(ans);
+				if upcase(ans) = 'Y' then begin
+					editBuku(kodeBuku);
+				end;
+			end;
+		end else writeln('[FAILED] Data buku tidak ditemukan !!');
+
+		writeln; write('>> Apakah anda masih ingin mencari buku lain? [y/t] '); readln(ans);
 	end;
 	isHome := true;
 
