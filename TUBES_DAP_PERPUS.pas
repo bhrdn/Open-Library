@@ -307,24 +307,7 @@ procedure lihatBuku;
 var
 	temp : schemaBooks;
 	i, j : integer;
-
-// begin refreshData('books');
-// 	if length(arrBooks) <> 0 then begin
-// 		{todo: sorting}
-// 		for i := 0 to length(arrBooks) do
-// 		begin
-// 			if arrBooks[i].kodeBuku <> '' then begin
-// 				writeln(i+1, '. ', arrBooks[i].kodeBuku, ' | ', arrBooks[i].judulBuku, ' | ',  arrBooks[i].jenisBuku, ' | ',  arrBooks[i].jumlahBuku, ' | ',  arrBooks[i].jumlahDipinjam);
-// 			end;
-// 		end;
-// 	end
-// 	else begin
-// 		writeln('[FAILED] Empty record books.dat'); isHome := false;
-// 	end;
-
-// 	readln;
-// end;
-
+	
 begin booksDat;
 
 	i := 1;	
@@ -384,6 +367,11 @@ begin ans := 'Y';
 
 end;
 
+procedure kembaliBuku;
+begin
+	
+end;
+
 procedure hapusBuku;
 var
 	ans, kodeBuku : string;
@@ -435,7 +423,7 @@ begin
 	case menu of
 		1: lihatBuku;
 		2: cariBuku;
-		3: kembalikanBuku;
+		3: kembaliBuku;
 		4: begin
 			isLogout := true;
 		end;
