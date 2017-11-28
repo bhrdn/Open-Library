@@ -32,18 +32,15 @@ var
 	arrBooks  : array of schemaBooks;
 	arrBorrow : array of schemaBorrowBooks;
 
-	{variableMenu}
+	{variableGlobal}
 	isLogin, isLogout, isAdmin, isHome : boolean;
-	{/variableMenu}
+	sessionUser : string;
+	{/variableGlobal}
 
 	{variableBooks}
 	kodeBuku, judulBuku, jenisBuku  : string;
 	jumlahBuku, jumlahDipinjam 		: integer;
 	{/variableBooks}
-
-	{variableUsers}
-	username, password : string;
-	{/variableUsers}
 
 label start, finish;
 {/declare}
@@ -179,8 +176,8 @@ end;
 {procedureUsers}
 procedure tambahUsers;
 var
-	temp 	  : schemaUsers;
-	stat, ans : string;
+	username, password, stat, ans : string;
+	temp : schemaUsers;
 
 begin ans := 'Y';
 
@@ -249,19 +246,26 @@ end;
 
 procedure pinjamBuku(var kodeBuku : string);
 var
-	temp : schemaBooks;
+	tempBooks  : schemaBooks;
+	tempBorrow : schemaBorrowBooks;
 	i 	 : integer;
 
 begin booksDat;
 	for i := 1 to filesize(books) do
 	begin
 		seek(books, i-1);
-		read(books, temp);
+		read(books, tempBooks);
 
-		if temp.kodeBuku = kodeBuku then begin
-			temp.jumlahDipinjam := temp.jumlahDipinjam + 1;
-			seek(books, i-1); write(books, temp);
-			write('[SUCCESS] Berhasil meminjam buku dengan kode ', temp.kodeBuku);
+		if tempBooks.kodeBuku = kodeBuku then begin borrowDat;
+			
+			tempBorrow.username := sessionUser;
+			tempBorrow.kodeBuku := tempBooks.kodeBuku;
+			seek(borrow, filesize(borrow));
+			write(borrow, tempBorrow); close(borrow);
+
+			tempBooks.jumlahDipinjam := tempBooks.jumlahDipinjam + 1;
+			seek(books, i-1); write(books, tempBooks);
+			write('[SUCCESS] Berhasil meminjam buku dengan kode ', tempBooks.kodeBuku);
 			readln; isHome := true;
 		end; 	
 	end;
@@ -307,7 +311,7 @@ procedure lihatBuku;
 var
 	temp : schemaBooks;
 	i, j : integer;
-	
+
 begin booksDat;
 
 	i := 1;	
@@ -368,8 +372,20 @@ begin ans := 'Y';
 end;
 
 procedure kembaliBuku;
-begin
+var
+	tempBorrow : schemaBorrowBooks;
+	tempBooks  : schemaBooks;
+	index, i   : integer;
+
+begin booksDat; borrowDat;
+	for i := 0 to length(arrBorrow) do begin
+		if arrBorrow[i].username = sessionUser then begin
+			index := searchBooks(arrBorrow[i].kodeBuku);
+			writeln(i+1, '. ', arrBooks[index].kodeBuku, ' | ', arrBooks[index].judulBuku);
+		end;
+	end;
 	
+	readln;
 end;
 
 procedure hapusBuku;
@@ -493,7 +509,7 @@ begin;
 		index := searchUsers(user);
 
 		if (index <> -1) and (arrUsers[index].password = passwd) then begin
-			isLogin := true;
+			isLogin := true; sessionUser := arrUsers[index].username;
 			if arrUsers[index].status = 1 then isAdmin := true
 			else isAdmin := false;
 		end else begin
