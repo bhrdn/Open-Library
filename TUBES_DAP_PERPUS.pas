@@ -209,8 +209,7 @@ var
 	ans  : string;
 	i 	 : integer;
 
-begin
-
+begin booksDat;
 	for i := 1 to filesize(books) do
 	begin
 		seek(books, i-1);
@@ -231,6 +230,28 @@ begin
 			end;
 		end; 	
 	end;
+	close(books);
+end;
+
+procedure pinjamBuku(var kodeBuku : string);
+var
+	temp : schemaBooks;
+	i 	 : integer;
+
+begin booksDat;
+	for i := 1 to filesize(books) do
+	begin
+		seek(books, i-1);
+		read(books, temp);
+
+		if temp.kodeBuku = kodeBuku then begin
+			temp.jumlahDipinjam := temp.jumlahDipinjam + 1;
+			seek(books, i-1); write(books, temp);
+			write('[SUCCESS] Berhasil meminjam buku dengan kode ', temp.kodeBuku);
+			readln; isHome := true;
+		end; 	
+	end;
+	close(books);
 end;
 
 procedure tambahBuku;
@@ -308,8 +329,8 @@ end;
 
 procedure cariBuku;
 var
-	ans, kodeBuku : string;
-	index 		  : integer;
+	ans, kodeBuku, stBuku : string;
+	index, jmBuku 		  : integer;
 
 begin ans := 'Y';
 
@@ -317,16 +338,28 @@ begin ans := 'Y';
 		write('>> Masukkan Kode Buku: '); readln(kodeBuku);
 		index := searchBooks(kodeBuku);
 
-		if index <> -1 then begin
+		if index <> -1 then begin jmBuku := arrBooks[index].jumlahDipinjam + 1;
+
+			if arrBooks[index].jumlahBuku >= jmBuku then stBuku := 'Masih bisa dipinjam'
+			else stBuku := 'Stok buku habis';
+
 			writeln('- Judul Buku: ', arrBooks[index].judulBuku);
 			writeln('- Jenis Buku: ', arrBooks[index].jenisBuku);
-			writeln('- Jumlah Buku: ', arrBooks[index].jumlahBuku);
+			writeln('- Jumlah Buku: ', arrBooks[index].jumlahBuku, ' (', stBuku, ')');
 			writeln('- Jumlah Dipinjam: ', arrBooks[index].jumlahDipinjam);
 
 			if isAdmin then begin
 				writeln; write('>> Apakah anda ingin mengedit data? [y/t] '); readln(ans);
 				if upcase(ans) = 'Y' then begin
 					editBuku(kodeBuku);
+				end;
+			end
+			else begin
+				if arrBooks[index].jumlahBuku >= jmBuku then begin
+					writeln; write('>> Apakah anda ingin meminjam buku? [y/t] '); readln(ans);
+					if upcase(ans) = 'Y' then begin
+						pinjamBuku(kodeBuku);
+					end;
 				end;
 			end;
 		end else writeln('[FAILED] Data buku tidak ditemukan !!');
@@ -379,7 +412,7 @@ begin
 	clrscr;
 	writeln('[MENU] BOOKS');
 	writeln('1. Lihat Data Buku');
-	writeln('2. Cari Data Buku');
+	writeln('2. Cari/Pinjam Buku');
 	writeln('3. Keluar'); writeln;
 	write('Pilih menu: '); readln(menu);
 
