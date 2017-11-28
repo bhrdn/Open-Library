@@ -18,11 +18,19 @@ type
 		jumlahDipinjam : integer;
 	end;
 
+	schemaBorrowBooks = record
+		username : string;
+		kodeBuku : string;
+	end;
+
 var
-	users : file of schemaUsers;
-	books : file of schemaBooks;
-	arrUsers : array of schemaUsers;
-	arrBooks : array of schemaBooks;
+	users     : file of schemaUsers;
+	books     : file of schemaBooks;
+	borrow    : file of schemaBorrowBooks; 
+
+	arrUsers  : array of schemaUsers;
+	arrBooks  : array of schemaBooks;
+	arrBorrow : array of schemaBorrowBooks;
 
 	{variableMenu}
 	isLogin, isLogout, isAdmin, isHome : boolean;
@@ -51,6 +59,12 @@ procedure booksDat;
 begin
 	assign(books, 'books.dat');
 	reset(books);
+end;
+
+procedure borrowDat;
+begin
+	assign(borrow, 'borrow.dat');
+	reset(borrow);
 end;
 {/procedureAsip}
 
@@ -413,14 +427,16 @@ begin
 	writeln('[MENU] BOOKS');
 	writeln('1. Lihat Data Buku');
 	writeln('2. Cari/Pinjam Buku');
-	writeln('3. Keluar'); writeln;
+	writeln('3. Mengembalikan Buku');
+	writeln('4. Keluar'); writeln;
 	write('Pilih menu: '); readln(menu);
 
 	clrscr;
 	case menu of
 		1: lihatBuku;
 		2: cariBuku;
-		3: begin
+		3: kembalikanBuku;
+		4: begin
 			isLogout := true;
 		end;
 	end;
