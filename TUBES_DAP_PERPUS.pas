@@ -171,31 +171,33 @@ var
 begin ans := 'Y';
 
 	while upcase(ans) = 'Y' do begin
-		usersDat;
-		if ioresult <> 0 then rewrite(users);
-		seek(users, filesize(users));
-
 		with temp do
-		begin
+		begin usersDat;
 			writeln('[MENU] TAMBAH USERS'); writeln;
 			write('> Username: '); readln(username);
 
-			if (searchUsers(username) = -1) then begin
-				write('> Password: '); readln(password);
-				write('> Status admin [y/t]: '); readln(stat);
-
-				if upcase(stat) = 'Y' then status := 1 else status := 0;
-
-				writeln; write('>> Apakah anda yakin akan menambahkan user baru? [y/t] '); readln(ans);
-				if upcase(ans) = 'Y' then begin
-					write(users, temp); close(users);
-					writeln('[SUCCESS] Berhasil mendaftarkan user baru'); readln;
+			if filesize(users) <> 0 then begin close(users);
+				if (searchUsers(username) <> -1) then begin
+					writeln('[FAILED] Gagal mendaftarkan user baru (username exist)'); 
+					readln; isHome := true;
 				end;
-			end else writeln('[FAILED] Gagal mendaftarkan user baru'); readln;
+			end;
+
+			write('> Password: '); readln(password);
+			write('> Status admin [y/t]: '); readln(stat);
+
+			if upcase(stat) = 'Y' then status := 1 else status := 0;
+
+			writeln; write('>> Apakah anda yakin akan menambahkan user baru? [y/t] '); readln(ans);
+			if upcase(ans) = 'Y' then begin usersDat;
+				if ioresult <> 0 then rewrite(users);
+				seek(users, filesize(users)); write(users, temp); close(users);
+				writeln('[SUCCESS] Berhasil mendaftarkan user baru'); readln;
+			end;
 		end;
 		writeln; write('>> Apakah anda masih ingin menambahkan user lagi? [y/t] '); readln(ans);
 	end;
-	close(users); isHome := true;
+	isHome := true;
 
 end;
 {/procedureUsers}
