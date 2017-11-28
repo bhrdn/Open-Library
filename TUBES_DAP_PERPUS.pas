@@ -23,7 +23,10 @@ var
 	books : file of schemaBooks;
 	arrUsers : array of schemaUsers;
 	arrBooks : array of schemaBooks;
+
+	{variableMenu}
 	isLogin, isLogout, isAdmin, isHome : boolean;
+	{/variableMenu}
 
 	{variableBooks}
 	kodeBuku, judulBuku, jenisBuku  : string;
@@ -33,8 +36,6 @@ var
 	{variableUsers}
 	username, password : string;
 	{/variableUsers}
-
-	temp : schemaUsers;
 
 label start, finish;
 {/declare}
@@ -106,19 +107,19 @@ end;
 {/functionOther}
 
 {functionUsers}
-function createUsers(user, passwd : string): boolean;
-begin
-	
-end;
+function searchUsers(user : string): integer;
+var i: integer;
 
-function editUsers(id, passwd : string): boolean;
-begin
-	
-end;
+begin refreshData('users');
 
-function deleteUsers(id : string): boolean;
-begin
-	
+	searchUsers := -1;
+	for i := 0 to length(arrUsers)+1 do begin
+		if arrUsers[i].username = user then begin
+			searchUsers := i;
+			break;
+		end;
+	end;
+
 end;
 {/functionUsers}
 
@@ -178,22 +179,23 @@ begin ans := 'Y';
 		begin
 			writeln('[MENU] TAMBAH USERS'); writeln;
 			write('> Username: '); readln(username);
-			write('> Password: '); readln(password);
-			write('> Status admin [y/t]: '); readln(stat);
 
-			if upcase(stat) = 'Y' then status := 1
-			else status := 0;
+			if (searchUsers(username) = -1) then begin
+				write('> Password: '); readln(password);
+				write('> Status admin [y/t]: '); readln(stat);
+
+				if upcase(stat) = 'Y' then status := 1 else status := 0;
+
+				writeln; write('>> Apakah anda yakin akan menambahkan user baru? [y/t] '); readln(ans);
+				if upcase(ans) = 'Y' then begin
+					write(users, temp); close(users);
+					writeln('[SUCCESS] Berhasil mendaftarkan user baru'); readln;
+				end;
+			end else writeln('[FAILED] Gagal mendaftarkan user baru'); readln;
 		end;
-
-		writeln; write('>> Apakah anda yakin akan menambahkan user baru? [y/t] '); readln(ans);
-		if upcase(ans) = 'Y' then begin
-			write(users, temp); close(users);
-			writeln('[SUCCESS] Berhasil mendaftarkan user baru'); readln;
-		end;
-
-		writeln; write('>> Apakah anda ingin menambahkan user lagi? [y/t] '); readln(ans);
+		writeln; write('>> Apakah anda masih ingin menambahkan user lagi? [y/t] '); readln(ans);
 	end;
-	isHome := true;
+	close(users); isHome := true;
 
 end;
 {/procedureUsers}
@@ -439,9 +441,9 @@ end;
 procedure login;
 var
 	user, passwd : string;
-	i 			 : integer;
+	index		 : integer;
 
-begin refreshData('users');
+begin;
 	
 	while not isLogin do begin
 		clrscr;
@@ -449,19 +451,15 @@ begin refreshData('users');
 		write('Username: '); readln(user);
 		write('Password: '); readln(passwd);
 
-		for i := 0 to length(arrUsers) do
-		begin
-			if (arrUsers[i].username = user) and (arrUsers[i].password = passwd) then begin
-				isLogin := true;
-				if arrUsers[i].status = 1 then isAdmin := true
-				else isAdmin := false;
-				break;
-			end
-			else begin
-				writeln('[FAILED] Login Gagal !!');
-				readln; break;
-			end;
-		end; 
+		index := searchUsers(user);
+
+		if (index <> -1) and (arrUsers[index].password = passwd) then begin
+			isLogin := true;
+			if arrUsers[index].status = 1 then isAdmin := true
+			else isAdmin := false;
+		end else begin
+			writeln('[FAILED] Login Gagal !!'); readln;
+		end;
 	end;
 	showMenu;
 
@@ -469,18 +467,6 @@ end;
 {/procedureOther}
 
 BEGIN init; start:
-
-usersDat;
-
-while not eof(users) do begin
-	read(users, temp);
-	with temp do begin
-		writeln(temp.username, temp.password, temp.status);
-	end;
-end;
-close(users);
-
-readln;
 
 if isLogin then
 	showMenu
