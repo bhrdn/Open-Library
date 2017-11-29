@@ -64,12 +64,12 @@ end;
 {/procedureAsip}
 
 {functionOther}
-function refreshData(tipe : string): boolean;
+function refreshData(tipe, by : string): boolean;
 var
 	tempUsers  : schemaUsers;
 	tempBooks  : schemaBooks;
 	tempBorrow : schemaBorrowBooks;
-	i : integer;
+	i, j : integer;
 
 begin
 	case tipe of
@@ -87,6 +87,28 @@ begin
 				read(users, arrUsers[i]);
 				i := i + 1;
 			end;
+
+			for i := 0 to length(arrUsers)-1 do begin
+				for j := 0 to length(arrUsers)-1 do begin
+					case by of
+					 	'asc': begin
+					 		if arrUsers[i].username < arrUsers[j].username then begin
+								tempUsers := arrUsers[i];
+								arrUsers[i] := arrUsers[j];
+								arrUsers[j] := tempUsers;
+							end;	
+					 	end;
+
+					 	'desc': begin
+					 		if arrUsers[i].username > arrUsers[j].username then begin
+								tempUsers := arrUsers[i];
+								arrUsers[i] := arrUsers[j];
+								arrUsers[j] := tempUsers;
+							end;
+					 	end;
+					end;
+				end;
+			end;
 			close(users);
 		end;
 
@@ -103,6 +125,28 @@ begin
 			begin
 				read(books, arrBooks[i]);
 				i := i + 1;
+			end;
+
+			for i := 0 to length(arrBooks)-1 do begin
+				for j := 0 to length(arrBooks)-1 do begin
+					case by of
+					 	'asc': begin
+					 		if arrBooks[i].jenisBuku < arrBooks[j].jenisBuku then begin
+								tempBooks := arrBooks[i];
+								arrBooks[i] := arrBooks[j];
+								arrBooks[j] := tempBooks;
+							end;	
+					 	end;
+
+					 	'desc': begin
+					 		if arrBooks[i].jenisBuku > arrBooks[j].jenisBuku then begin
+								tempBooks := arrBooks[i];
+								arrBooks[i] := arrBooks[j];
+								arrBooks[j] := tempBooks;
+							end;
+					 	end;
+					end;
+				end;
 			end;
 			close(books);
 		end;
@@ -124,6 +168,28 @@ begin
 				end;
 				i := i + 1;
 			end;
+
+			for i := 0 to length(arrBorrow)-1 do begin
+				for j := 0 to length(arrBorrow)-1 do begin
+					case by of
+					 	'asc': begin
+					 		if arrBorrow[i].kodeBuku < arrBorrow[j].kodeBuku then begin
+								tempBorrow := arrBorrow[i];
+								arrBorrow[i] := arrBorrow[j];
+								arrBorrow[j] := tempBorrow;
+							end;	
+					 	end;
+
+					 	'desc': begin
+					 		if arrBorrow[i].kodeBuku > arrBorrow[j].kodeBuku then begin
+								tempBorrow := arrBorrow[i];
+								arrBorrow[i] := arrBorrow[j];
+								arrBorrow[j] := tempBorrow;
+							end;
+					 	end;
+					end;
+				end;
+			end;
 			close(borrow);
 		end;
 	end;
@@ -134,7 +200,7 @@ end;
 function searchUsers(user : string): integer;
 var i: integer;
 
-begin refreshData('users');
+begin refreshData('users', 'asc');
 	searchUsers := -1;
 	for i := 0 to length(arrUsers) do begin
 		if arrUsers[i].username = user then begin
@@ -151,7 +217,7 @@ var
 	temp : schemaBooks;
 	i    : integer;
 
-begin refreshData('books');
+begin refreshData('books', 'asc');
 	searchBooks := -1;
 	for i := 0 to length(arrBooks) do begin
 		if arrBooks[i].kodeBuku = kodeBuku then begin
@@ -176,7 +242,7 @@ begin index := searchBooks(idBooks);
 		for i := index to filesize(books) do seek(books, i-1);
 
 		seek(books, index); truncate(books); close(books);
-		refreshData('books'); deleteBooks := true;
+		refreshData('books', 'asc'); deleteBooks := true;
 
 	end;
 end;
@@ -318,25 +384,15 @@ end;
 
 procedure lihatBuku;
 var
-	temp : schemaBooks;
+	tempUsers  : schemaUsers;
+	tempBooks  : schemaBooks;
+	tempBorrow : schemaBorrowBooks;
 	i, j : integer;
 
-begin refreshData('books');
+begin refreshData('books', 'asc');
 	if length(arrBooks) = 0 then begin
 		writeln('[FAILED] Empty record books.dat'); isHome := true;
 	end;
-
-	booksDat;
-	for i := 0 to length(arrBooks)-1 do begin
-		for j := 0 to length(arrBooks)-1 do begin
-			if arrBooks[i].jenisBuku < arrBooks[j].jenisBuku then begin
-				temp := arrBooks[i];
-				arrBooks[i] := arrBooks[j];
-				arrBooks[j] := temp;
-			end;
-		end;
-	end;
-	close(books);
 
 	for i := 0 to length(arrBooks)-1 do begin
 		if arrBooks[i].kodeBuku <> '' then begin
@@ -397,13 +453,14 @@ var
 	tempBooks    : schemaBooks;
 	index, i     : integer;
 	idBooks, ans : string;
+	found 		 : boolean;
 
 label finish;
 
 begin ans := 'Y';
 
 	while upcase(ans) = 'Y' do begin
-		refreshData('books'); refreshData('borrow');
+		refreshData('books', 'asc'); refreshData('borrow', 'asc');
 
 		writeln('[MENU] Mengembalikan buku'); writeln;
 
@@ -426,39 +483,42 @@ begin ans := 'Y';
 
 		writeln; write('> Masukkan kode buku: '); readln(idBooks);
 		
-		booksDat;
-		for i := 1 to filesize(books) do
-		begin
-			seek(books, i-1);
-			read(books, tempBooks);
+		// booksDat; found := false;
+		// for i := 1 to filesize(books) do
+		// begin
+		// 	seek(books, i-1);
+		// 	read(books, tempBooks);
 
-			if tempBooks.kodeBuku = idBooks then begin
-				tempBooks.jumlahDipinjam := tempBooks.jumlahDipinjam - 1;
-				seek(books, i-1); write(books, tempBooks);
-				break;
-			end else begin
-				writeln('[FAILED] Data buku tidak ditemukan !!'); isHome := true;
-			end;
-		end;
+		// 	if tempBooks.kodeBuku = idBooks then begin
+		// 		found := true;
+		// 		tempBooks.jumlahDipinjam := tempBooks.jumlahDipinjam - 1;
+		// 		seek(books, i-1); write(books, tempBooks);
+		// 		break;
+		// 	end;
+		// end;
+		// close(books);
 
-		borrowDat;
-		for i := 1 to filesize(borrow) do
-		begin
-			seek(borrow, i-1);
-			read(borrow, tempBorrow);
+		// if not found then begin
+		// 	writeln('[FAILED] Data buku tidak ditemukan !!'); goto finish;
+		// end;
 
-			if (tempBorrow.username = sessionUser) and (tempBorrow.kodeBuku = idBooks) then begin
-				seek(borrow, i-1);
-				truncate(borrow);
-			end else begin
-				writeln('[FAILED] Data buku tidak ditemukan !!'); isHome := true;
-			end;
-		end;
+		// borrowDat;
+		// for i := 1 to filesize(borrow) do
+		// begin
+		// 	seek(borrow, i-1);
+		// 	read(borrow, tempBorrow);
 
-		writeln('[SUCCESS] Berhasil mengembalikan buku dengan kode ', idBooks);
+		// 	if (tempBorrow.username = sessionUser) and (tempBorrow.kodeBuku = idBooks) then begin
+		// 		seek(borrow, i-1);
+		// 		truncate(borrow);
+		// 	end;
+		// end;
+
+		// if found then writeln('[SUCCESS] Berhasil mengembalikan buku dengan kode ', idBooks);
+		
 		writeln; write('>> Apakah anda ingin mengembalikan buku lagi? [y/t] '); readln(ans);
 	end;
-	close(books); close(borrow);
+	close(borrow);
 	
 	finish:
 	writeln; writeln('Tekan (enter) untuk kembali..'); readln;
