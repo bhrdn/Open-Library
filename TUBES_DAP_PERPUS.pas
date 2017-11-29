@@ -2,7 +2,6 @@ program Perpustakaan;
 
 uses crt;
 
-{declare}
 type 
 	schemaUsers = record
 		username : string;
@@ -43,7 +42,6 @@ var
 	{/variableBooks}
 
 label start, finish;
-{/declare}
 
 {procedureAsip}
 procedure usersDat;
@@ -68,9 +66,10 @@ end;
 {functionOther}
 function refreshData(tipe : string): boolean;
 var
-	tempUsers : schemaUsers;
-	tempBooks : schemaBooks;
-	i 		  : integer;
+	tempUsers  : schemaUsers;
+	tempBooks  : schemaBooks;
+	tempBorrow : schemaBorrowBooks;
+	i : integer;
 
 begin
 	case tipe of
@@ -85,10 +84,7 @@ begin
 			
 			while not eof(users) do 
 			begin
-				read(users, tempUsers);
-				with tempUsers do begin
-					arrUsers[i] := tempUsers;
-				end;
+				read(users, arrUsers[i]);
 				i := i + 1;
 			end;
 			close(users);
@@ -105,13 +101,30 @@ begin
 			
 			while not eof(books) do 
 			begin
-				read(books, tempBooks);
-				with tempBooks do begin
-					arrBooks[i] := tempBooks;
-				end;
+				read(books, arrBooks[i]);
 				i := i + 1;
 			end;
 			close(books);
+		end;
+
+		'borrow': begin borrowDat;
+			if ioresult <> 0 then begin
+				writeln('[FAILED] Empty record borrow.dat');
+				close(borrow); isHome := true;
+			end;
+
+			i := 0;
+			setlength(arrBorrow, filesize(borrow));
+			
+			while not eof(borrow) do 
+			begin
+				read(borrow, tempBorrow);
+				with tempBorrow do begin
+					arrBorrow[i] := tempBorrow;
+				end;
+				i := i + 1;
+			end;
+			close(borrow);
 		end;
 	end;
 end;
@@ -122,15 +135,13 @@ function searchUsers(user : string): integer;
 var i: integer;
 
 begin refreshData('users');
-
 	searchUsers := -1;
-	for i := 0 to length(arrUsers)+1 do begin
+	for i := 0 to length(arrUsers) do begin
 		if arrUsers[i].username = user then begin
 			searchUsers := i;
 			break;
 		end;
 	end;
-
 end;
 {/functionUsers}
 
@@ -141,15 +152,13 @@ var
 	i    : integer;
 
 begin refreshData('books');
-	
-	for i := 0 to length(arrBooks) do
-	begin
+	searchBooks := -1;
+	for i := 0 to length(arrBooks) do begin
 		if arrBooks[i].kodeBuku = kodeBuku then begin
-			searchBooks := i; break;
-		end 
-		else searchBooks := -1;
+			searchBooks := i; 
+			break;
+		end;
 	end;
-
 end;
 
 function deleteBooks(idBooks : string): boolean;
@@ -226,7 +235,7 @@ begin booksDat;
 		seek(books, i-1);
 		read(books, temp);
 
-		if temp.kodeBuku = kodeBuku then begin clrscr;
+		if temp.kodeBuku = kodeBuku then begin writeln;
 			writeln('>> Kode Buku: ', temp.kodeBuku);
 			write('> Judul Buku: '); readln(temp.judulBuku);
 			write('> Jenis Buku: '); readln(temp.jenisBuku);
@@ -248,7 +257,7 @@ procedure pinjamBuku(var kodeBuku : string);
 var
 	tempBooks  : schemaBooks;
 	tempBorrow : schemaBorrowBooks;
-	i 	 : integer;
+	i : integer;
 
 begin booksDat;
 	for i := 1 to filesize(books) do
@@ -302,7 +311,7 @@ begin start:
 		writeln('[SUCCESS] Berhasil mendaftarkan buku dengan kode ', temp.kodeBuku); readln;
 	end;
 
-	writeln; write('>> Apakah anda ingin menambahkan buku lagi? [y/t] '); readln(ans);
+	write('>> Apakah anda ingin menambahkan buku lagi? [y/t] '); readln(ans);
 	if upcase(ans) = 'Y' then goto start
 	else isHome := true;
 end;
@@ -312,20 +321,31 @@ var
 	temp : schemaBooks;
 	i, j : integer;
 
-begin booksDat;
-
-	i := 1;	
-	while not eof(books) do begin
-		
-		read(books, temp);
-		with temp do begin
-			writeln(i, '. ', temp.kodeBuku, ' | ', temp.judulBuku, ' | ',  temp.jenisBuku, ' | ',  temp.jumlahBuku, ' | ',  temp.jumlahDipinjam);
-		end;
-		i := i + 1;
-
+begin refreshData('books');
+	if length(arrBooks) = 0 then begin
+		writeln('[FAILED] Empty record books.dat'); isHome := true;
 	end;
-	close(books); readln;
 
+	booksDat;
+	for i := 0 to length(arrBooks)-1 do begin
+		for j := 0 to length(arrBooks)-1 do begin
+			if arrBooks[i].jenisBuku < arrBooks[j].jenisBuku then begin
+				temp := arrBooks[i];
+				arrBooks[i] := arrBooks[j];
+				arrBooks[j] := temp;
+			end;
+		end;
+	end;
+	close(books);
+
+	for i := 0 to length(arrBooks)-1 do begin
+		if arrBooks[i].kodeBuku <> '' then begin
+			writeln(i+1, '. ', arrBooks[i].kodeBuku, ' | ', arrBooks[i].judulBuku, ' | ',  arrBooks[i].jenisBuku, ' | ',  arrBooks[i].jumlahBuku, ' | ',  arrBooks[i].jumlahDipinjam);
+		end;
+	end;
+
+	writeln; writeln('Tekan (enter) untuk kembali..');
+	readln;
 end;
 
 procedure cariBuku;
@@ -373,19 +393,75 @@ end;
 
 procedure kembaliBuku;
 var
-	tempBorrow : schemaBorrowBooks;
-	tempBooks  : schemaBooks;
-	index, i   : integer;
+	tempBorrow   : schemaBorrowBooks;
+	tempBooks    : schemaBooks;
+	index, i     : integer;
+	idBooks, ans : string;
 
-begin booksDat; borrowDat;
-	for i := 0 to length(arrBorrow) do begin
-		if arrBorrow[i].username = sessionUser then begin
-			index := searchBooks(arrBorrow[i].kodeBuku);
-			writeln(i+1, '. ', arrBooks[index].kodeBuku, ' | ', arrBooks[index].judulBuku);
+label finish;
+
+begin ans := 'Y';
+
+	while upcase(ans) = 'Y' do begin
+		refreshData('books'); refreshData('borrow');
+
+		writeln('[MENU] Mengembalikan buku'); writeln;
+
+		if length(arrBorrow) = 0 then begin
+			writeln('List buku yang anda pinjam, masih kosong !!');
+			goto finish;
 		end;
+
+		for i := 0 to length(arrBorrow) do begin
+			if arrBorrow[i].username = sessionUser then begin
+				index := searchBooks(arrBorrow[i].kodeBuku);
+
+				if index <> -1 then writeln(i+1, '. ', arrBooks[index].kodeBuku, ' | ', arrBooks[index].judulBuku)
+				else begin
+					writeln('[FAILED] Data buku tidak ditemukan !!'); isHome := true;
+					break;
+				end;
+			end;
+		end;
+
+		writeln; write('> Masukkan kode buku: '); readln(idBooks);
+		
+		booksDat;
+		for i := 1 to filesize(books) do
+		begin
+			seek(books, i-1);
+			read(books, tempBooks);
+
+			if tempBooks.kodeBuku = idBooks then begin
+				tempBooks.jumlahDipinjam := tempBooks.jumlahDipinjam - 1;
+				seek(books, i-1); write(books, tempBooks);
+				break;
+			end else begin
+				writeln('[FAILED] Data buku tidak ditemukan !!'); isHome := true;
+			end;
+		end;
+
+		borrowDat;
+		for i := 1 to filesize(borrow) do
+		begin
+			seek(borrow, i-1);
+			read(borrow, tempBorrow);
+
+			if (tempBorrow.username = sessionUser) and (tempBorrow.kodeBuku = idBooks) then begin
+				seek(borrow, i-1);
+				truncate(borrow);
+			end else begin
+				writeln('[FAILED] Data buku tidak ditemukan !!'); isHome := true;
+			end;
+		end;
+
+		writeln('[SUCCESS] Berhasil mengembalikan buku dengan kode ', idBooks);
+		writeln; write('>> Apakah anda ingin mengembalikan buku lagi? [y/t] '); readln(ans);
 	end;
+	close(books); close(borrow);
 	
-	readln;
+	finish:
+	writeln; writeln('Tekan (enter) untuk kembali..'); readln;
 end;
 
 procedure hapusBuku;
@@ -428,7 +504,7 @@ var
 
 begin
 	clrscr;
-	writeln('[MENU] BOOKS');
+	writeln('Hallo ', sessionUser, ' [MENU] BOOKS');
 	writeln('1. Lihat Data Buku');
 	writeln('2. Cari/Pinjam Buku');
 	writeln('3. Mengembalikan Buku');
@@ -498,16 +574,17 @@ var
 	user, passwd : string;
 	index		 : integer;
 
-begin;
-	
-	while not isLogin do begin
+label start;
+
+begin
+
+	while not isLogin do begin start:
 		clrscr;
 		writeln('[LOGIN] OPEN LIBRARY TELKOM UNIVERSITY');
-		write('Username: '); readln(user);
+		write('Username: '); readln(user); if user = '' then goto start; 
 		write('Password: '); readln(passwd);
 
 		index := searchUsers(user);
-
 		if (index <> -1) and (arrUsers[index].password = passwd) then begin
 			isLogin := true; sessionUser := arrUsers[index].username;
 			if arrUsers[index].status = 1 then isAdmin := true
